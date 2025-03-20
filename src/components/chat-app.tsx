@@ -56,9 +56,9 @@ export const ChatApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between py-4">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">LLM Response Tester</h1>
             <Badge variant="outline" className="text-xs">Beta</Badge>
@@ -69,9 +69,9 @@ export const ChatApp: React.FC = () => {
         </div>
       </header>
       
-      <main className="container py-6 space-y-6">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle>Test Configuration</CardTitle>
             <CardDescription>Configure your test parameters and questions</CardDescription>
           </CardHeader>
@@ -137,20 +137,22 @@ export const ChatApp: React.FC = () => {
           </TabsList>
           <TabsContent value="chat" className="mt-6">
             {windows.length > 0 ? (
-              <ScrollArea className="h-[calc(100vh-300px)]">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-1">
-                  {windows.map(id => (
-                    <ChatWindow 
-                      key={id} 
-                      id={id}
-                      autoTest={isAutoTesting}
-                      testMessages={testMessages}
-                      onTestComplete={handleTestComplete}
-                      model={selectedModel}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
+              <div className="h-[calc(100vh-300px)] w-full">
+                <ScrollArea className="h-full w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-6">
+                    {windows.map(id => (
+                      <ChatWindow 
+                        key={id} 
+                        id={id}
+                        autoTest={isAutoTesting}
+                        testMessages={testMessages}
+                        onTestComplete={handleTestComplete}
+                        model={selectedModel}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                 <Settings className="h-12 w-12 mb-4 opacity-20" />

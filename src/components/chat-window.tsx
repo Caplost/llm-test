@@ -96,9 +96,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <Card className="w-full h-[500px] flex flex-col overflow-hidden shadow-md border-muted group hover:shadow-lg transition-shadow duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 border-b">
-        <div className="flex items-center space-x-2">
+    <Card className="flex flex-col h-[450px] overflow-hidden shadow-md border-muted group hover:shadow-lg transition-shadow duration-300">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 border-b">
+        <div className="flex items-center gap-2 flex-wrap">
           <CardTitle className="text-base font-medium">Chat Window {id}</CardTitle>
           {autoTest && (
             <Badge variant="secondary" className="font-normal">
@@ -113,7 +113,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </CardHeader>
       <CardContent className="flex-1 p-0 overflow-hidden">
-        <ScrollArea className="h-[calc(500px-120px)] p-4">
+        <ScrollArea className="h-[calc(450px-112px)] p-3">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-4 text-muted-foreground">
               <Bot className="h-12 w-12 mb-4 opacity-20" />
