@@ -8,6 +8,7 @@ export interface Message {
     autoTest: boolean;
     testMessages: string[];
     onTestComplete: (id: number) => void;
+    model: string;
   }
   
   export interface QuestionListProps {

@@ -3,10 +3,23 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Play, Square } from 'lucide-react';
+import { Play, Square, Settings } from 'lucide-react';
 import { ChatWindow } from './chat-window';
 import { QuestionList } from './question-list';
 import { DEFAULT_TEST_MESSAGES } from '@/data/questions';
+import { ThemeToggle } from './theme-toggle';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ModelSelector } from './model-selector';
 
 export const ChatApp: React.FC = () => {
   const [windowCount, setWindowCount] = useState('3');
@@ -14,6 +27,8 @@ export const ChatApp: React.FC = () => {
   const [isAutoTesting, setIsAutoTesting] = useState(false);
   const [completedTests, setCompletedTests] = useState(0);
   const [testMessages, setTestMessages] = useState(DEFAULT_TEST_MESSAGES);
+  const [activeTab, setActiveTab] = useState('chat');
+  const [selectedModel, setSelectedModel] = useState('deepseek');
 
   const startTest = () => {
     if (testMessages.length === 0) {
@@ -26,6 +41,7 @@ export const ChatApp: React.FC = () => {
       setWindows(Array.from({ length: count }, (_, i) => i + 1));
       setIsAutoTesting(true);
       setCompletedTests(0);
+      setActiveTab('chat');
     }
   };
 
@@ -40,53 +56,120 @@ export const ChatApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">Ollama Chat Stress Test</h1>
-        <div className="flex items-center space-x-4 mb-4">
-          <Input
-            type="number"
-            value={windowCount}
-            onChange={(e) => setWindowCount(e.target.value)}
-            className="w-24"
-            min="1"
-            max="20"
-            disabled={isAutoTesting}
-          />
-          {!isAutoTesting ? (
-            <Button onClick={startTest} disabled={testMessages.length === 0}>
-              <Play className="h-4 w-4 mr-2" />
-              Start Test
-            </Button>
-          ) : (
-            <Button onClick={stopTest} variant="destructive">
-              <Square className="h-4 w-4 mr-2" />
-              Stop Test
-            </Button>
-          )}
-          <div className="text-sm text-gray-500">
-            Tests completed: {completedTests}
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between py-4">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold">LLM Response Tester</h1>
+            <Badge variant="outline" className="text-xs">Beta</Badge>
+          </div>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
           </div>
         </div>
-      </div>
+      </header>
+      
+      <main className="container py-6 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Test Configuration</CardTitle>
+            <CardDescription>Configure your test parameters and questions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <label htmlFor="window-count" className="text-sm font-medium mb-2 block">
+                  Number of Chat Windows
+                </label>
+                <Input
+                  id="window-count"
+                  type="number"
+                  value={windowCount}
+                  onChange={(e) => setWindowCount(e.target.value)}
+                  className="w-full"
+                  min="1"
+                  max="20"
+                  disabled={isAutoTesting}
+                />
+              </div>
+              
+              <ModelSelector 
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                disabled={isAutoTesting}
+              />
 
-      <QuestionList 
-        questions={testMessages}
-        setQuestions={setTestMessages}
-        disabled={isAutoTesting}
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {windows.map(id => (
-          <ChatWindow 
-            key={id} 
-            id={id}
-            autoTest={isAutoTesting}
-            testMessages={testMessages}
-            onTestComplete={handleTestComplete}
-          />
-        ))}
-      </div>
+              <div className="flex flex-col justify-end">
+                <div className="flex items-center justify-between space-x-3">
+                  {!isAutoTesting ? (
+                    <Button 
+                      onClick={startTest} 
+                      disabled={testMessages.length === 0}
+                      className="w-full"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Start Test
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={stopTest} 
+                      variant="destructive"
+                      className="w-full"
+                    >
+                      <Square className="h-4 w-4 mr-2" />
+                      Stop Test
+                    </Button>
+                  )}
+                </div>
+                <div className="text-sm mt-2 text-center">
+                  <span className="font-medium">Tests completed:</span> {completedTests} 
+                  {completedTests > 0 && ` / ${windows.length * testMessages.length}`}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="chat">Chat Windows</TabsTrigger>
+            <TabsTrigger value="questions">Test Questions</TabsTrigger>
+          </TabsList>
+          <TabsContent value="chat" className="mt-6">
+            {windows.length > 0 ? (
+              <ScrollArea className="h-[calc(100vh-300px)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-1">
+                  {windows.map(id => (
+                    <ChatWindow 
+                      key={id} 
+                      id={id}
+                      autoTest={isAutoTesting}
+                      testMessages={testMessages}
+                      onTestComplete={handleTestComplete}
+                      model={selectedModel}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                <Settings className="h-12 w-12 mb-4 opacity-20" />
+                <h3 className="text-lg font-medium mb-1">No active chat windows</h3>
+                <p className="text-sm max-w-md text-center">
+                  Configure the number of windows and press "Start Test" to begin testing LLM responses
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="questions" className="mt-6">
+            <QuestionList 
+              questions={testMessages}
+              setQuestions={setTestMessages}
+              disabled={isAutoTesting}
+            />
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
 };
