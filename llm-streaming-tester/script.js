@@ -390,6 +390,24 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleSummaryModal(true);
     }
     
+    // Helper function to convert status text to class name
+    function status2Class(status) {
+        switch (status) {
+            case '等待中':
+                return 'waiting';
+            case '连接中...':
+                return 'loading';
+            case '流式接收中':
+                return 'streaming';
+            case '已完成':
+                return 'finished';
+            case '错误':
+                return 'error';
+            default:
+                return 'default';
+        }
+    }
+    
     // Render table with data
     function renderSummaryTable(data) {
         const tableBody = document.getElementById('summary-table-body');
@@ -402,20 +420,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // 格式化问题内容，去除"问题: "前缀
             const questionText = item.question.replace(/^问题:\s*/i, '');
             
-            // 计算总体速率 (tokens/总时间)
-            const overallRate = (item.responseTokens / item.responseTime).toFixed(1);
-            
             // 合并回答信息
             const responseInfo = `${item.responseTokens} tokens / ${item.tokensPerSecond.toFixed(1)} t/s`;
             
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">${item.requestNumber}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${overallRate} t/s</td>
                 <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(questionText)}">${escapeHtml(truncateText(questionText, 150))}</td>
                 <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(item.response)}">${escapeHtml(truncateText(item.response, 150))}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${responseInfo}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${item.responseTime.toFixed(1)}</td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="status-label ${statusClass}">${item.status}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="status-label status-${status2Class(item.status)}">${item.status}</span></td>
             `;
             
             tableBody.appendChild(row);
@@ -430,10 +444,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const tableHeaders = document.querySelectorAll('#summary-table th');
         const sortableColumns = [
             { index: 0, key: 'requestNumber', type: 'number' },
-            { index: 1, key: 'overallRate', type: 'number', getter: item => item.responseTokens / item.responseTime },
-            { index: 4, key: 'responseTokens', type: 'number' },
-            { index: 5, key: 'responseTime', type: 'number' },
-            { index: 6, key: 'status', type: 'string' }
+            { index: 3, key: 'responseTokens', type: 'number' },
+            { index: 4, key: 'responseTime', type: 'number' },
+            { index: 5, key: 'status', type: 'string' }
         ];
         
         // Clear existing sort indicators
@@ -635,15 +648,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add data rows
         responseData.forEach(item => {
-            // 计算总体速率
-            const overallRate = (parseInt(item.responseTokens) / parseFloat(item.responseTime)).toFixed(1) || "0.0";
-            
             // 合并回答信息
             const responseInfo = `${item.responseTokens} tokens / ${item.tokensPerSecond} t/s`;
             
             const rowData = [
                 `"${item.requestNumber}"`,
-                `"${overallRate} t/s"`,
                 `"${item.question.replace(/"/g, '""')}"`,
                 `"${item.response.replace(/"/g, '""')}"`,
                 `"${responseInfo}"`,
