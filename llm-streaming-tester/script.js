@@ -56,6 +56,32 @@ document.addEventListener('DOMContentLoaded', () => {
         responseWindow.id = responseId;
         responseWindow.querySelector('.response-number').textContent = `请求 #${requestCounter}`;
         
+        // Add question content to the question area (limit to 200 characters for display)
+        const questionElement = responseWindow.querySelector('.question-content');
+        const displayPrompt = prompt.length > 200 ? prompt.substring(0, 197) + '...' : prompt;
+        questionElement.textContent = `问题: ${displayPrompt}`;
+        
+        // Store the full prompt as a data attribute for reference
+        questionElement.dataset.fullPrompt = prompt;
+        questionElement.dataset.expanded = 'false';
+        
+        // Add click handler to toggle between shortened and full question
+        if (prompt.length > 200) {
+            questionElement.style.cursor = 'pointer';
+            questionElement.title = '点击展开/折叠完整问题';
+            
+            questionElement.addEventListener('click', function() {
+                const isExpanded = this.dataset.expanded === 'true';
+                if (isExpanded) {
+                    this.textContent = `问题: ${displayPrompt}`;
+                    this.dataset.expanded = 'false';
+                } else {
+                    this.textContent = `问题: ${prompt}`;
+                    this.dataset.expanded = 'true';
+                }
+            });
+        }
+        
         // Add to container
         outputsContainer.prepend(responseWindow);
         
