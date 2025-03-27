@@ -79,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusElement = responseWindow.querySelector('.response-status');
         const responseContent = responseWindow.querySelector('.response-content');
         const responseTime = responseWindow.querySelector('.response-time');
+        const tokensInfoElement = responseWindow.querySelector('.tokens-info');
+        const totalTokensElement = responseWindow.querySelector('.total-tokens');
+        const tokensPerSecondElement = responseWindow.querySelector('.tokens-per-second');
         
         const endpointUrl = document.getElementById('endpoint-url').value;
         const modelName = document.getElementById('model-name').value;
@@ -93,11 +96,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const controller = new AbortController();
         activeRequests.set(responseId, controller);
         
-        // Track time
+        // Track time and tokens
         const startTime = Date.now();
+        let totalTokens = 0;
+        
         const timeInterval = setInterval(() => {
             const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1);
             responseTime.textContent = `${elapsedSeconds}s`;
+            
+            // Update tokens per second if we have tokens
+            if (totalTokens > 0) {
+                const elapsedSecondsNum = parseFloat(elapsedSeconds);
+                const tokensPerSecond = (totalTokens / elapsedSecondsNum).toFixed(1);
+                tokensPerSecondElement.textContent = tokensPerSecond;
+            }
         }, 100);
         
         try {
@@ -162,8 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (data.choices && data.choices[0]) {
                                 if (data.choices[0].text) {
                                     textChunk = data.choices[0].text;
+                                    // Increment token count - roughly estimate tokens as words
+                                    totalTokens += estimateTokens(textChunk);
                                 } else if (data.choices[0].delta && data.choices[0].delta.content) {
                                     textChunk = data.choices[0].delta.content;
+                                    // Increment token count - roughly estimate tokens as words
+                                    totalTokens += estimateTokens(textChunk);
                                 }
                             }
                             
@@ -171,23 +187,42 @@ document.addEventListener('DOMContentLoaded', () => {
                                 responseText += textChunk;
                                 responseContent.textContent = responseText;
                                 responseContent.scrollTop = responseContent.scrollHeight;
+                                
+                                // Show tokens information
+                                tokensInfoElement.classList.remove('hidden');
+                                totalTokensElement.textContent = totalTokens;
                             }
                         } catch (parseError) {
                             // If we can't parse as JSON, just append the raw text
                             responseText += line;
                             responseContent.textContent = responseText;
+                            
+                            // Roughly estimate tokens
+                            totalTokens += estimateTokens(line);
+                            tokensInfoElement.classList.remove('hidden');
+                            totalTokensElement.textContent = totalTokens;
                         }
                     }
                 } catch (err) {
                     // Fallback for any parsing error - display raw chunk
                     responseText += chunk;
                     responseContent.textContent = responseText;
+                    
+                    // Roughly estimate tokens
+                    totalTokens += estimateTokens(chunk);
+                    tokensInfoElement.classList.remove('hidden');
+                    totalTokensElement.textContent = totalTokens;
                 }
             }
             
             // Complete
             updateStatus(statusElement, 'finished');
             responseContent.classList.remove('typing-animation');
+            
+            // Final token rate calculation
+            const elapsedSeconds = (Date.now() - startTime) / 1000;
+            const tokensPerSecond = (totalTokens / elapsedSeconds).toFixed(1);
+            tokensPerSecondElement.textContent = tokensPerSecond;
         } catch (error) {
             if (error.name === 'AbortError') {
                 updateStatus(statusElement, 'error');
@@ -202,6 +237,23 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(timeInterval);
             activeRequests.delete(responseId);
         }
+    }
+
+    // Helper function to estimate tokens from text
+    // This is a rough approximation - actual token count depends on the tokenizer
+    function estimateTokens(text) {
+        if (!text) return 0;
+        
+        // Count Chinese characters (each roughly counts as one token)
+        const chineseCharCount = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
+        
+        // Count non-Chinese words (each roughly counts as one token)
+        const nonChineseText = text.replace(/[\u4e00-\u9fa5]/g, '');
+        const nonChineseWords = nonChineseText.trim().split(/[\s,.!?;:"'-]+/).filter(word => word.length > 0);
+        const nonChineseWordCount = nonChineseWords.length;
+        
+        // Sum of Chinese characters and non-Chinese words as token estimate
+        return chineseCharCount + nonChineseWordCount || 1; // Return at least 1 if there's any text
     }
 
     function updateStatus(statusElement, status) {
