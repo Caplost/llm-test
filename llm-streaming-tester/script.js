@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startTestButton = document.getElementById('start-test');
     const outputsContainer = document.getElementById('outputs-container');
     const responseTemplate = document.getElementById('response-template');
+    const presetPromptsSelect = document.getElementById('preset-prompts');
     
     // Track active requests
     const activeRequests = new Map();
@@ -9,21 +10,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startTestButton.addEventListener('click', startConcurrentTests);
 
+    // Helper function to get all questions from the dropdown
+    function getAllQuestions() {
+        const questions = [];
+        for (let i = 1; i < presetPromptsSelect.options.length; i++) {
+            questions.push(presetPromptsSelect.options[i].value);
+        }
+        return questions;
+    }
+
+    // Helper function to get a random question
+    function getRandomQuestion() {
+        const questions = getAllQuestions();
+        if (questions.length === 0) {
+            return "用简单的语言解释量子计算"; // Fallback if no questions are found
+        }
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        return questions[randomIndex];
+    }
+
     function startConcurrentTests() {
         const concurrentCount = parseInt(document.getElementById('concurrent-requests').value, 10);
-        const prompt = document.getElementById('prompt-template').value;
         
         // Clear existing outputs if needed
-        if (confirm('Clear existing outputs?')) {
+        if (confirm('清除现有输出？')) {
             outputsContainer.innerHTML = '';
             activeRequests.forEach((controller) => controller.abort());
             activeRequests.clear();
             requestCounter = 0;
         }
         
-        // Start the specified number of concurrent requests
+        // Start the specified number of concurrent requests with random questions
         for (let i = 0; i < concurrentCount; i++) {
-            createNewRequest(prompt);
+            const randomPrompt = getRandomQuestion();
+            createNewRequest(randomPrompt);
         }
     }
 
@@ -34,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clone the template
         const responseWindow = document.importNode(responseTemplate.content, true).querySelector('.response-window');
         responseWindow.id = responseId;
-        responseWindow.querySelector('.response-number').textContent = `Request #${requestCounter}`;
+        responseWindow.querySelector('.response-number').textContent = `请求 #${requestCounter}`;
         
         // Add to container
         outputsContainer.prepend(responseWindow);
@@ -171,10 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             if (error.name === 'AbortError') {
                 updateStatus(statusElement, 'error');
-                responseContent.textContent = 'Request aborted';
+                responseContent.textContent = '请求已中止';
             } else {
                 updateStatus(statusElement, 'error');
-                responseContent.textContent = `Error: ${error.message}`;
+                responseContent.textContent = `错误: ${error.message}`;
                 console.error('Streaming error:', error);
             }
             responseContent.classList.remove('typing-animation');
@@ -189,19 +209,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         switch (status) {
             case 'waiting':
-                statusElement.textContent = 'Waiting';
+                statusElement.textContent = '等待中';
                 break;
             case 'loading':
-                statusElement.textContent = 'Connecting...';
+                statusElement.textContent = '连接中...';
                 break;
             case 'streaming':
-                statusElement.textContent = 'Streaming';
+                statusElement.textContent = '流式接收中';
                 break;
             case 'finished':
-                statusElement.textContent = 'Completed';
+                statusElement.textContent = '已完成';
                 break;
             case 'error':
-                statusElement.textContent = 'Error';
+                statusElement.textContent = '错误';
                 break;
         }
     }

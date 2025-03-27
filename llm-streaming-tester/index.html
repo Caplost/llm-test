@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Streaming Tester</title>
+    <title>安元国产化大模型测试</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@latest/gray.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
@@ -11,44 +11,117 @@
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto p-4">
         <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">LLM Streaming Tester</h1>
-            <p class="text-gray-600">Test concurrent streaming with large language models</p>
+            <h1 class="text-3xl font-bold text-gray-800">安元国产化大模型流式响应测试工具</h1>
+            <p class="text-gray-600">测试大型语言模型的并发流式响应</p>
         </header>
 
         <div class="controls mb-6 p-4 bg-white rounded-lg shadow">
             <div class="flex flex-col md:flex-row gap-4 mb-4">
-                <div class="flex-1">
-                    <label for="prompt-template" class="block text-sm font-medium text-gray-700 mb-1">Prompt Template</label>
-                    <textarea id="prompt-template" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">Explain quantum computing in simple terms</textarea>
+                <div class="flex-1 md:w-2/3">
+                    <label for="prompt-template" class="block text-sm font-medium text-gray-700 mb-1">随机化工问题列表（系统将从以下问题中随机抽取）</label>
+                    <textarea id="prompt-template" rows="32" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-sm overflow-y-auto custom-scrollbar" readonly>可随机抽取的化工问题：
+1. 解释化学反应中的多相催化原理，以及它与均相催化有何不同
+2. 分析氨生产过程中减少温室气体排放的挑战和潜在解决方案
+3. 描述高温工业环境下的聚合物降解机制
+4. 解释控制石化蒸馏塔分离过程的热力学和动力学原理
+5. 讨论制药结晶过程放大的挑战
+6. 分析酸性环境下化学反应器的腐蚀机制
+7. 解释石油精炼中催化重整的反应路径和热力学
+8. 讨论工业固定床反应器中的传质限制
+9. 解释化学加工中的膜分离技术原理
+10. 分析重质石油馏分加氢裂化中涉及的反应和催化剂
+11. 讨论批次反应器中精确控制放热反应温度的挑战
+12. 解释稀土元素处理中溶剂萃取的分子原理
+13. 分析工业换热器的热力学效率极限
+14. 讨论流化催化裂化装置中气溶胶形成的机制
+15. 解释用于CO2捕获的化学链燃烧原理
+16. 讨论金属有机框架(MOF)气体吸附的分子机制及其应用
+17. 分析超临界流体萃取过程的分子动力学
+18. 解释反应萃取过程中液-液相行为与反应动力学的相互作用
+19. 讨论准确建模多相化学反应器的挑战
+20. 分析高温工业反应器中催化剂烧结机制
+21. 解释强化过程中的反应精馏原理
+22. 讨论工业色谱分离中的热力学和传质挑战
+23. 分析工业电化学过程中电极结垢的机制
+24. 解释微反应器技术在危险化学品合成中的原理
+25. 讨论将连续流化学过程从实验室扩大到生产规模的挑战
+26. 分析生物质衍生化合物催化加氢脱氧的分子机制
+27. 解释控制共沸蒸馏过程中溶剂选择的热力学和动力学原理
+28. 讨论在多组分混合物的高压气液平衡中准确预测逸度系数的挑战
+29. 分析火焰喷雾热解中纳米粒子形成的机制
+30. 解释高放热聚合反应的工艺安全管理原则
+31. 讨论精确建模表现多晶型现象的化合物结晶动力学的挑战
+32. 分析复杂氢化物中氢存储的热力学和动力学
+33. 解释特定化学应用离子液体设计背后的分子原理</textarea>
+                    <div class="mt-2 hidden">
+                        <label for="preset-prompts" class="block text-sm font-medium text-gray-700 mb-1">化工行业问题</label>
+                        <select id="preset-prompts" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">-- 选择一个化工行业问题 --</option>
+                            <option value="解释化学反应中的多相催化原理，以及它与均相催化有何不同。在工业应用中，这两种方法各有什么优势和劣势？">多相催化原理</option>
+                            <option value="分析氨生产过程中减少温室气体排放的挑战和潜在解决方案。碳捕获技术如何整合到哈伯-博世工艺中？">氨生产减排技术</option>
+                            <option value="描述高温工业环境下的聚合物降解机制。抗氧化剂和稳定剂如何在分子水平上防止热降解？">聚合物热降解机制</option>
+                            <option value="解释控制石化蒸馏塔分离过程的热力学和动力学原理。这些原理如何指导最佳塔设计和操作参数？">石化蒸馏热力学</option>
+                            <option value="讨论制药结晶过程放大的挑战。哪些计算模型可以预测多晶型现象，它们在工业实施中的可靠性如何？">制药结晶放大</option>
+                            <option value="分析酸性环境下化学反应器的腐蚀机制。哪些先进材料和表面处理技术能为不同工艺条件提供最佳保护？">工业腐蚀机制</option>
+                            <option value="解释石油精炼中催化重整的反应路径和热力学。催化剂失活机制如何影响长期工艺效率？">催化重整热力学</option>
+                            <option value="讨论工业固定床反应器中的传质限制。计算流体动力学如何帮助优化反应器设计以最小化这些限制？">固定床传质限制</option>
+                            <option value="解释化学加工中的膜分离技术原理。恶劣化学环境应用中的膜材料最新进展有哪些？">膜分离技术</option>
+                            <option value="分析重质石油馏分加氢裂化中涉及的反应和催化剂。沸石性质如何影响产品选择性？">加氢裂化催化</option>
+                            <option value="讨论批次反应器中精确控制放热反应温度的挑战。哪些先进控制策略可以最小化失控反应风险？">放热反应控制</option>
+                            <option value="解释稀土元素处理中溶剂萃取的分子原理。螯合剂如何提高分离效率？">溶剂萃取原理</option>
+                            <option value="分析工业换热器的热力学效率极限。哪些设计创新可以克服高温化学工艺中的结垢问题？">换热器热力学</option>
+                            <option value="讨论流化催化裂化装置中气溶胶形成的机制。哪些技术最适合捕获超细颗粒排放？">FCC装置气溶胶形成</option>
+                            <option value="解释用于CO2捕获的化学链燃烧原理。不同工业燃料的最佳氧载体材料是什么？">化学链燃烧</option>
+                            <option value="讨论金属有机框架(MOF)气体吸附的分子机制及其在工业气体分离中的潜力。将MOF生产扩大到商业规模的限制是什么？">MOF工业气体分离</option>
+                            <option value="分析超临界流体萃取过程的分子动力学。如何优化工艺参数以从复杂混合物中选择性提取特定化合物？">超临界流体萃取优化</option>
+                            <option value="解释反应萃取过程中液-液相行为与反应动力学的相互作用。这些因素如何影响工业萃取器的设计选择？">反应萃取过程</option>
+                            <option value="讨论准确建模多相化学反应器的挑战。哪些计算方法最能捕捉传输现象与化学动力学之间的复杂相互作用？">多相反应器建模</option>
+                            <option value="分析高温工业反应器中催化剂烧结机制。哪些新型方法可以延长催化剂寿命，同时保持活性和选择性？">催化剂烧结防止</option>
+                            <option value="解释强化过程中的反应精馏原理。整合反应和分离过程时的关键设计考虑因素是什么？">反应精馏设计</option>
+                            <option value="讨论工业色谱分离中的热力学和传质挑战。现代模拟移动床技术如何克服这些限制？">工业色谱分离</option>
+                            <option value="分析工业电化学过程中电极结垢的机制。哪些监测技术可以检测性能退化的早期迹象？">电化学过程监测</option>
+                            <option value="解释微反应器技术在危险化学品合成中的原理。热量和质量传递优势如何转化为工业应用中的安全改进？">危险合成微反应器技术</option>
+                            <option value="讨论将连续流化学过程从实验室扩大到生产规模的挑战。哪些工程方法可以在放大过程中保持反应选择性？">连续流化学放大</option>
+                            <option value="分析生物质衍生化合物催化加氢脱氧的分子机制。催化剂性质如何影响不同烃产品的选择性？">生物质加氢脱氧催化</option>
+                            <option value="解释控制共沸蒸馏过程中溶剂选择的热力学和动力学原理。分子模拟如何指导难分离物的夹带剂选择？">共沸蒸馏溶剂选择</option>
+                            <option value="讨论在多组分混合物的高压气液平衡中准确预测逸度系数的挑战。哪些状态方程发展提高了工业应用的准确性？">高压气液平衡建模</option>
+                            <option value="分析火焰喷雾热解中纳米粒子形成的机制。如何优化工艺参数以控制粒径分布和形态？">火焰喷雾热解优化</option>
+                            <option value="解释高放热聚合反应的工艺安全管理原则。哪些仪表和控制策略可靠防止失控反应？">放热聚合安全</option>
+                            <option value="讨论精确建模表现多晶型现象的化合物结晶动力学的挑战。如何增强群体平衡模型预测晶体粒径分布？">多晶型结晶动力学</option>
+                            <option value="分析复杂氢化物中氢存储的热力学和动力学。氢释放和吸收循环中的速率限制步骤是什么？">复杂氢化物氢存储</option>
+                            <option value="解释特定化学应用离子液体设计背后的分子原理。结构特征如何影响物理化学性质？">离子液体结构-性质关系</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="w-full md:w-1/3">
                     <div class="mb-4">
-                        <label for="endpoint-url" class="block text-sm font-medium text-gray-700 mb-1">Endpoint URL</label>
+                        <label for="endpoint-url" class="block text-sm font-medium text-gray-700 mb-1">接口地址</label>
                         <input type="text" id="endpoint-url" value="http://153.37.96.42:21006/v1/completions" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="mb-4">
-                        <label for="model-name" class="block text-sm font-medium text-gray-700 mb-1">Model Name</label>
+                        <label for="model-name" class="block text-sm font-medium text-gray-700 mb-1">模型名称</label>
                         <input type="text" id="model-name" value="/home/models/DeepSeek-R1-Int4-AWQ" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
             </div>
             <div class="flex flex-col md:flex-row gap-4 mb-4">
                 <div class="w-full md:w-1/4">
-                    <label for="max-tokens" class="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
+                    <label for="max-tokens" class="block text-sm font-medium text-gray-700 mb-1">最大token数</label>
                     <input type="number" id="max-tokens" value="4000" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div class="w-full md:w-1/4">
-                    <label for="temperature" class="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+                    <label for="temperature" class="block text-sm font-medium text-gray-700 mb-1">温度</label>
                     <input type="number" id="temperature" value="0.7" min="0" max="2" step="0.1" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div class="w-full md:w-1/4">
-                    <label for="concurrent-requests" class="block text-sm font-medium text-gray-700 mb-1">Concurrent Requests</label>
+                    <label for="concurrent-requests" class="block text-sm font-medium text-gray-700 mb-1">并发请求数</label>
                     <input type="number" id="concurrent-requests" value="3" min="1" max="10" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
-                <div class="w-full md:w-1/4 flex items-end">
+                <div class="w-full md:w-1/4 flex items-end flex-col">
                     <button id="start-test" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                        Start Test
+                        开始测试
                     </button>
+                    <p class="text-xs text-gray-500 mt-1">系统会为每个并发请求随机选择不同的化工问题</p>
                 </div>
             </div>
         </div>
