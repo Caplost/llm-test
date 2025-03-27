@@ -6,12 +6,32 @@
     <title>安元国产化大模型测试</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@latest/gray.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20240801">
+    <script>
+      // Force CSS refresh by dynamically updating link href with timestamp
+      window.addEventListener('DOMContentLoaded', () => {
+        const cssLink = document.querySelector('link[href^="styles.css"]');
+        if (cssLink) {
+          cssLink.href = `styles.css?v=${Date.now()}`;
+        }
+      });
+    </script>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto p-4">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800">安元国产化大模型流式响应测试工具</h1>
+        <header class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold text-gray-800">安元国产化大模型流式响应测试工具</h1>
+                <div class="space-x-2">
+                    <button id="show-summary" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">
+                        显示汇总表格
+                    </button>
+                    <button id="force-refresh" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md" 
+                        onclick="window.location.reload(true)">
+                        强制刷新页面
+                    </button>
+                </div>
+            </div>
             <p class="text-gray-600">测试大型语言模型的并发流式响应</p>
         </header>
 

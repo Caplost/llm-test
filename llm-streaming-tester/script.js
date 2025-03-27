@@ -415,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         data.forEach(item => {
             const row = document.createElement('tr');
-            const statusClass = getStatusClass(item.status);
             
             // 格式化问题内容，去除"问题: "前缀
             const questionText = item.question.replace(/^问题:\s*/i, '');
@@ -423,13 +422,24 @@ document.addEventListener('DOMContentLoaded', () => {
             // 合并回答信息
             const responseInfo = `${item.responseTokens} tokens / ${item.tokensPerSecond.toFixed(1)} t/s`;
             
+            // 使用类名而不是内联样式
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">${item.requestNumber}</td>
-                <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(questionText)}">${escapeHtml(truncateText(questionText, 150))}</td>
-                <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(item.response)}">${escapeHtml(truncateText(item.response, 150))}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${responseInfo}</td>
+                <td class="px-6 py-4 summary-text-column question-column" 
+                    data-content="${escapeHtml(questionText)}">
+                    ${escapeHtml(truncateText(questionText, 150))}
+                </td>
+                <td class="px-6 py-4 summary-text-column answer-column" 
+                    data-content="${escapeHtml(item.response)}">
+                    ${escapeHtml(truncateText(item.response, 150))}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap response-info-column">
+                    ${responseInfo}
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap">${item.responseTime.toFixed(1)}</td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="status-label status-${status2Class(item.status)}">${item.status}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="status-label status-${status2Class(item.status)}">${item.status}</span>
+                </td>
             `;
             
             tableBody.appendChild(row);
@@ -560,25 +570,57 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Setup expandable text cells
     function setupExpandableTextCells() {
-        const textCells = document.querySelectorAll('.summary-text-column');
+        // 获取所有可展开的文本单元格
+        const textCells = document.querySelectorAll('#summary-table .summary-text-column');
+        console.log(`找到 ${textCells.length} 个可展开文本单元格`);
         
-        textCells.forEach(cell => {
-            cell.style.cursor = 'pointer';
+        textCells.forEach((cell, index) => {
+            // 确保单元格有data-content属性
+            if (!cell.hasAttribute('data-content')) {
+                console.warn(`单元格 #${index} 没有data-content属性`);
+                return;
+            }
             
-            cell.addEventListener('click', function() {
+            // 移除所有现有的事件监听器和指示器
+            cell.replaceWith(cell.cloneNode(true));
+            
+            // 重新获取替换后的元素
+            const newCell = document.querySelectorAll('#summary-table .summary-text-column')[index];
+            
+            // 添加视觉提示
+            let indicator = newCell.querySelector('.expand-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.className = 'expand-indicator';
+                indicator.innerHTML = '👁️';
+                indicator.style.cssText = 'position:absolute; bottom:2px; right:2px; font-size:10px; opacity:0.5;';
+                newCell.appendChild(indicator);
+            }
+            
+            // 添加点击事件
+            newCell.addEventListener('click', function(e) {
                 const content = this.getAttribute('data-content');
+                console.log(`单元格点击 - 内容长度: ${content?.length || 0}`);
                 
-                // Create backdrop
+                if (!content) {
+                    console.error('单元格没有data-content属性');
+                    return;
+                }
+                
+                // 移除任何现有的模态框
+                document.querySelectorAll('.modal-backdrop, .expanded-content').forEach(el => el.remove());
+                
+                // 创建背景遮罩
                 const backdrop = document.createElement('div');
                 backdrop.className = 'modal-backdrop';
                 document.body.appendChild(backdrop);
                 
-                // Create expanded content
+                // 创建展开内容区域
                 const expandedDiv = document.createElement('div');
                 expandedDiv.className = 'expanded-content';
                 expandedDiv.textContent = content;
                 
-                // Add close button
+                // 添加关闭按钮
                 const closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;background:none;border:none;font-size:24px;cursor:pointer;';
@@ -586,20 +628,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 document.body.appendChild(expandedDiv);
                 
-                // Setup close handlers
-                closeBtn.addEventListener('click', closeExpandedContent);
-                backdrop.addEventListener('click', closeExpandedContent);
+                // 设置关闭处理程序
+                closeBtn.addEventListener('click', () => {
+                    expandedDiv.remove();
+                    backdrop.remove();
+                });
+                
+                backdrop.addEventListener('click', () => {
+                    expandedDiv.remove();
+                    backdrop.remove();
+                });
+                
+                // 阻止事件冒泡
+                e.stopPropagation();
             });
+            
+            console.log(`设置单元格 #${index}: ${newCell.className}`);
         });
-    }
-    
-    // Close expanded content
-    function closeExpandedContent() {
-        const expandedContent = document.querySelector('.expanded-content');
-        const backdrop = document.querySelector('.modal-backdrop');
-        
-        if (expandedContent) expandedContent.remove();
-        if (backdrop) backdrop.remove();
     }
     
     // Export table to CSV
