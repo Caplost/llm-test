@@ -188,12 +188,23 @@ body {
   -webkit-box-orient: vertical;
 }
 
+/* 为提问和回答内容添加不同的样式 */
+#summary-table td:nth-child(2) {
+  background-color: #F9FAFB;
+  border-left: 3px solid #E5E7EB;
+}
+
+#summary-table td:nth-child(3) {
+  background-color: #F0FDF4;
+  border-left: 3px solid #BBF7D0;
+}
+
 .summary-text-column {
   position: relative;
 }
 
 .summary-text-column::after {
-  content: "点击展开";
+  content: "点击查看完整内容";
   position: absolute;
   bottom: 0;
   right: 0;

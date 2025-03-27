@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const displayPrompt = prompt.length > 200 ? prompt.substring(0, 197) + '...' : prompt;
         questionElement.textContent = `问题: ${displayPrompt}`;
         
-        // Store the full prompt as a data attribute for reference
+        // Store the full prompt as a data attribute for reference (不含"问题:"前缀)
         questionElement.dataset.fullPrompt = prompt;
         questionElement.dataset.expanded = 'false';
         
@@ -347,8 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const tableData = [];
         responseWindows.forEach(window => {
             const requestNumber = parseInt(window.querySelector('.response-number').textContent.replace('请求 #', ''));
-            const question = window.querySelector('.question-content').dataset.fullPrompt || 
+            let question = window.querySelector('.question-content').dataset.fullPrompt || 
                             window.querySelector('.question-content').textContent.replace('问题: ', '');
+            
+            // 确保去除问题前缀
+            question = question.replace(/^问题:\s*/i, '');
+            
             const response = window.querySelector('.response-content').textContent;
             
             // Use stored response tokens data if available, otherwise fall back to the displayed value
@@ -395,9 +399,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             const statusClass = getStatusClass(item.status);
             
+            // 格式化问题内容，去除"问题: "前缀
+            const questionText = item.question.replace(/^问题:\s*/i, '');
+            
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">${item.requestNumber}</td>
-                <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(item.question)}">${escapeHtml(truncateText(item.question, 150))}</td>
+                <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(questionText)}">${escapeHtml(truncateText(questionText, 150))}</td>
                 <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(item.response)}">${escapeHtml(truncateText(item.response, 150))}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${item.responseTokens}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${item.tokensPerSecond.toFixed(1)}</td>
@@ -589,8 +596,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         responseWindows.forEach(window => {
             const requestNumber = window.querySelector('.response-number').textContent.replace('请求 #', '');
-            const question = window.querySelector('.question-content').dataset.fullPrompt || 
+            let question = window.querySelector('.question-content').dataset.fullPrompt || 
                             window.querySelector('.question-content').textContent.replace('问题: ', '');
+            
+            // 确保去除问题前缀
+            question = question.replace(/^问题:\s*/i, '');
+            
             const response = window.querySelector('.response-content').textContent;
             const responseTokens = window.getAttribute('data-response-tokens') || 
                                 window.querySelector('.total-tokens').textContent;
