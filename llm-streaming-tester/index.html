@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Streaming Tester</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@radix-ui/colors@latest/gray.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-4">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">LLM Streaming Tester</h1>
+            <p class="text-gray-600">Test concurrent streaming with large language models</p>
+        </header>
+
+        <div class="controls mb-6 p-4 bg-white rounded-lg shadow">
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <div class="flex-1">
+                    <label for="prompt-template" class="block text-sm font-medium text-gray-700 mb-1">Prompt Template</label>
+                    <textarea id="prompt-template" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">Explain quantum computing in simple terms</textarea>
+                </div>
+                <div class="w-full md:w-1/3">
+                    <div class="mb-4">
+                        <label for="endpoint-url" class="block text-sm font-medium text-gray-700 mb-1">Endpoint URL</label>
+                        <input type="text" id="endpoint-url" value="http://153.37.96.42:21006/v1/completions" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="model-name" class="block text-sm font-medium text-gray-700 mb-1">Model Name</label>
+                        <input type="text" id="model-name" value="/home/models/DeepSeek-R1-Int4-AWQ" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <div class="w-full md:w-1/4">
+                    <label for="max-tokens" class="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
+                    <input type="number" id="max-tokens" value="4000" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="w-full md:w-1/4">
+                    <label for="temperature" class="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+                    <input type="number" id="temperature" value="0.7" min="0" max="2" step="0.1" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="w-full md:w-1/4">
+                    <label for="concurrent-requests" class="block text-sm font-medium text-gray-700 mb-1">Concurrent Requests</label>
+                    <input type="number" id="concurrent-requests" value="3" min="1" max="10" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="w-full md:w-1/4 flex items-end">
+                    <button id="start-test" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                        Start Test
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="outputs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Response windows will be dynamically added here -->
+        </div>
+
+        <template id="response-template">
+            <div class="response-window bg-white rounded-lg shadow overflow-hidden">
+                <div class="response-header bg-gray-200 p-3 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <span class="response-number font-medium mr-2"></span>
+                        <span class="response-status text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">Waiting</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="response-time text-xs text-gray-600">0.0s</span>
+                        <button class="close-btn text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="response-content p-4 h-64 overflow-y-auto font-mono text-sm whitespace-pre-wrap"></div>
+            </div>
+        </template>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

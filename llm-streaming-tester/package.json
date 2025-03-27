@@ -1,0 +1,19 @@
+{
+  "name": "llm-streaming-tester",
+  "version": "1.0.0",
+  "description": "A pure frontend application for testing LLM streaming capabilities",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "serve": "node server.js"
+  },
+  "keywords": [
+    "llm",
+    "streaming",
+    "ai",
+    "testing"
+  ],
+  "author": "",
+  "license": "MIT"
+}
