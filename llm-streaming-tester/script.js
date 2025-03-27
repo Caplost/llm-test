@@ -402,12 +402,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // 格式化问题内容，去除"问题: "前缀
             const questionText = item.question.replace(/^问题:\s*/i, '');
             
+            // 计算总体速率 (tokens/总时间)
+            const overallRate = (item.responseTokens / item.responseTime).toFixed(1);
+            
+            // 合并回答信息
+            const responseInfo = `${item.responseTokens} tokens / ${item.tokensPerSecond.toFixed(1)} t/s`;
+            
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">${item.requestNumber}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${overallRate} t/s</td>
                 <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(questionText)}">${escapeHtml(truncateText(questionText, 150))}</td>
                 <td class="px-6 py-4 summary-text-column" data-content="${escapeHtml(item.response)}">${escapeHtml(truncateText(item.response, 150))}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${item.responseTokens}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${item.tokensPerSecond.toFixed(1)}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${responseInfo}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${item.responseTime.toFixed(1)}</td>
                 <td class="px-6 py-4 whitespace-nowrap"><span class="status-label ${statusClass}">${item.status}</span></td>
             `;
@@ -424,8 +430,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const tableHeaders = document.querySelectorAll('#summary-table th');
         const sortableColumns = [
             { index: 0, key: 'requestNumber', type: 'number' },
-            { index: 3, key: 'responseTokens', type: 'number' },
-            { index: 4, key: 'tokensPerSecond', type: 'number' },
+            { index: 1, key: 'overallRate', type: 'number', getter: item => item.responseTokens / item.responseTime },
+            { index: 4, key: 'responseTokens', type: 'number' },
             { index: 5, key: 'responseTime', type: 'number' },
             { index: 6, key: 'status', type: 'string' }
         ];
@@ -465,10 +471,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Sort data
                 const sortedData = [...tableData].sort((a, b) => {
-                    const valueA = a[key];
-                    const valueB = b[key];
+                    let valueA = column.getter ? column.getter(a) : a[key];
+                    let valueB = column.getter ? column.getter(b) : b[key];
                     
                     if (column.type === 'number') {
+                        // Handle NaN or missing values
+                        valueA = isNaN(valueA) ? 0 : valueA;
+                        valueB = isNaN(valueB) ? 0 : valueB;
                         return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
                     } else {
                         return sortOrder === 'asc' ? 
@@ -626,12 +635,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add data rows
         responseData.forEach(item => {
+            // 计算总体速率
+            const overallRate = (parseInt(item.responseTokens) / parseFloat(item.responseTime)).toFixed(1) || "0.0";
+            
+            // 合并回答信息
+            const responseInfo = `${item.responseTokens} tokens / ${item.tokensPerSecond} t/s`;
+            
             const rowData = [
                 `"${item.requestNumber}"`,
+                `"${overallRate} t/s"`,
                 `"${item.question.replace(/"/g, '""')}"`,
                 `"${item.response.replace(/"/g, '""')}"`,
-                `"${item.responseTokens}"`,
-                `"${item.tokensPerSecond}"`,
+                `"${responseInfo}"`,
                 `"${item.responseTime}"`,
                 `"${item.status}"`,
             ];
