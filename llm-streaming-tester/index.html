@@ -23,9 +23,6 @@
             <div class="flex justify-between items-center mb-4">
                 <h1 class="text-2xl font-bold text-gray-800">安元国产化大模型流式响应测试工具</h1>
                 <div class="space-x-2">
-                    <button id="show-summary" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">
-                        显示汇总表格
-                    </button>
                     <button id="force-refresh" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md" 
                         onclick="window.location.reload(true)">
                         强制刷新页面
@@ -39,7 +36,7 @@
             <div class="flex flex-col md:flex-row gap-4 mb-4">
                 <div class="flex-1 md:w-2/3">
                     <label for="prompt-template" class="block text-sm font-medium text-gray-700 mb-1">随机化工问题列表（系统将从以下问题中随机抽取）</label>
-                    <textarea id="prompt-template" rows="32" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-sm overflow-y-auto custom-scrollbar" readonly>可随机抽取的化工问题：
+                    <textarea id="prompt-template" rows="10" style="height: 60px;" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-sm overflow-y-auto custom-scrollbar" readonly>可随机抽取的化工问题：
 1. 解释化学反应中的多相催化原理，以及它与均相催化有何不同
 2. 分析氨生产过程中减少温室气体排放的挑战和潜在解决方案
 3. 描述高温工业环境下的聚合物降解机制

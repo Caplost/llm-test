@@ -11,7 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Track active requests
     const activeRequests = new Map();
+    // 添加流式传输日志
+    const streamingLogs = new Map();
     let requestCounter = 0;
+
+    // 添加调试按钮
+    const forceRefreshButton = document.getElementById('force-refresh');
+    const debugButton = document.createElement('button');
+    debugButton.id = 'debug-streaming';
+    debugButton.className = 'px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md ml-2';
+    debugButton.textContent = '检查流式传输';
+    debugButton.addEventListener('click', checkStreamingStatus);
+    forceRefreshButton.parentNode.appendChild(debugButton);
+
+    // 添加一个状态指示器
+    const statusIndicator = document.createElement('div');
+    statusIndicator.id = 'stream-status';
+    statusIndicator.className = 'mt-2 text-xs text-center p-1 rounded hidden';
+    forceRefreshButton.parentNode.appendChild(statusIndicator);
 
     startTestButton.addEventListener('click', startConcurrentTests);
     
@@ -125,6 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxTokens = parseInt(document.getElementById('max-tokens').value, 10);
         const temperature = parseFloat(document.getElementById('temperature').value);
         
+        // 初始化流式传输日志
+        streamingLogs.set(responseId, {
+            prompt: prompt,
+            chunks: [],
+            startTime: Date.now(),
+            endTime: null,
+            status: 'starting',
+            errors: []
+        });
+        
         // Update status
         updateStatus(statusElement, 'loading');
         responseContent.classList.add('typing-animation');
@@ -186,15 +213,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const decoder = new TextDecoder();
             let responseText = '';
             
+            streamingLogs.get(responseId).status = 'streaming';
+            
             while (true) {
                 const { done, value } = await reader.read();
                 
                 if (done) {
+                    streamingLogs.get(responseId).status = 'completed';
+                    streamingLogs.get(responseId).endTime = Date.now();
                     break;
                 }
                 
                 // Decode the stream chunk
                 const chunk = decoder.decode(value, { stream: true });
+                
+                // 记录接收到的chunk
+                streamingLogs.get(responseId).chunks.push({
+                    timestamp: Date.now(),
+                    content: chunk
+                });
                 
                 // Handle chunk based on OpenAI-like streaming format
                 try {
@@ -271,6 +308,13 @@ document.addEventListener('DOMContentLoaded', () => {
             responseWindow.setAttribute('data-response-tokens', totalTokens);
             responseWindow.setAttribute('data-response-tps', tokensPerSecond);
         } catch (error) {
+            // 记录错误
+            streamingLogs.get(responseId).status = 'error';
+            streamingLogs.get(responseId).errors.push({
+                timestamp: Date.now(),
+                message: error.message
+            });
+            
             if (error.name === 'AbortError') {
                 updateStatus(statusElement, 'error');
                 responseContent.textContent = '请求已中止';
@@ -422,16 +466,24 @@ document.addEventListener('DOMContentLoaded', () => {
             // 合并回答信息
             const responseInfo = `${item.responseTokens} tokens / ${item.tokensPerSecond.toFixed(1)} t/s`;
             
+            // 确保原始完整内容保存在data-content属性中
+            const fullQuestionText = questionText;
+            const fullResponseText = item.response;
+            
+            // 在页面上显示的是截断内容
+            const displayQuestionText = truncateText(fullQuestionText, 150);
+            const displayResponseText = truncateText(fullResponseText, 150);
+            
             // 使用类名而不是内联样式
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">${item.requestNumber}</td>
                 <td class="px-6 py-4 summary-text-column question-column" 
-                    data-content="${escapeHtml(questionText)}">
-                    ${escapeHtml(truncateText(questionText, 150))}
+                    data-content="${escapeHtml(fullQuestionText)}">
+                    ${escapeHtml(displayQuestionText)}
                 </td>
                 <td class="px-6 py-4 summary-text-column answer-column" 
-                    data-content="${escapeHtml(item.response)}">
-                    ${escapeHtml(truncateText(item.response, 150))}
+                    data-content="${escapeHtml(fullResponseText)}">
+                    ${escapeHtml(displayResponseText)}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap response-info-column">
                     ${responseInfo}
@@ -618,15 +670,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 创建展开内容区域
                 const expandedDiv = document.createElement('div');
                 expandedDiv.className = 'expanded-content';
-                expandedDiv.textContent = content;
+                
+                // 添加内容类型标题
+                const contentType = this.classList.contains('question-column') ? '提问内容' : '回答内容';
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'expanded-content-title';
+                titleDiv.textContent = contentType;
+                expandedDiv.appendChild(titleDiv);
+                
+                // 创建内容容器并设置内容
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'expanded-content-body';
+                contentDiv.textContent = content;
+                expandedDiv.appendChild(contentDiv);
                 
                 // 添加关闭按钮
                 const closeBtn = document.createElement('button');
                 closeBtn.innerHTML = '&times;';
+                closeBtn.className = 'expanded-content-close';
                 closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;background:none;border:none;font-size:24px;cursor:pointer;';
                 expandedDiv.appendChild(closeBtn);
                 
                 document.body.appendChild(expandedDiv);
+                
+                // 确保滚动到顶部
+                setTimeout(() => {
+                    contentDiv.scrollTop = 0;
+                    expandedDiv.scrollTop = 0;
+                }, 10);
                 
                 // 设置关闭处理程序
                 closeBtn.addEventListener('click', () => {
@@ -722,5 +793,69 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    // 添加流式传输状态检查函数
+    function checkStreamingStatus() {
+        const statusDiv = document.getElementById('stream-status');
+        
+        // 如果没有请求记录，显示提示
+        if (streamingLogs.size === 0) {
+            statusDiv.textContent = '没有流式传输记录可查看';
+            statusDiv.className = 'mt-2 text-xs text-center p-1 rounded bg-yellow-100 text-yellow-800';
+            statusDiv.classList.remove('hidden');
+            setTimeout(() => statusDiv.classList.add('hidden'), 3000);
+            return;
+        }
+        
+        // 检查所有流式传输的状态
+        let hasErrors = false;
+        let hasOverlap = false;
+        let totalStreams = streamingLogs.size;
+        let completedStreams = 0;
+        
+        // 检查每个流的状态
+        streamingLogs.forEach((log, id) => {
+            if (log.status === 'error' || log.errors.length > 0) {
+                hasErrors = true;
+            }
+            if (log.status === 'completed') {
+                completedStreams++;
+            }
+        });
+        
+        // 检查是否有内容重叠（简单检查）
+        const activeResponseElements = document.querySelectorAll('.response-window');
+        const contents = new Set();
+        activeResponseElements.forEach(el => {
+            const content = el.querySelector('.response-content').textContent;
+            // 如果内容非常短，忽略
+            if (content.length < 10) return;
+            
+            // 如果内容已存在于集合中，可能有重叠
+            if (contents.has(content)) {
+                hasOverlap = true;
+            } else {
+                contents.add(content);
+            }
+        });
+        
+        // 显示状态
+        if (hasErrors) {
+            statusDiv.textContent = '检测到流式传输错误，请检查控制台日志';
+            statusDiv.className = 'mt-2 text-xs text-center p-1 rounded bg-red-100 text-red-800';
+        } else if (hasOverlap) {
+            statusDiv.textContent = '检测到可能的内容重叠，请检查各响应窗口';
+            statusDiv.className = 'mt-2 text-xs text-center p-1 rounded bg-orange-100 text-orange-800';
+        } else {
+            statusDiv.textContent = `流式传输正常：${completedStreams}/${totalStreams} 已完成`;
+            statusDiv.className = 'mt-2 text-xs text-center p-1 rounded bg-green-100 text-green-800';
+        }
+        
+        statusDiv.classList.remove('hidden');
+        setTimeout(() => statusDiv.classList.add('hidden'), 5000);
+        
+        // 在控制台输出详细日志
+        console.log('流式传输详细日志:', streamingLogs);
     }
 }); 
