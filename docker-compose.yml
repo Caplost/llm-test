@@ -1,19 +1,16 @@
 version: '3.8'
 
 services:
-  # Go API service
-  api:
+  # Nginx static file server
+  web:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - VERSION=1.0.0
     image: hub.qpaas.com/aimod/llm-streaming-api:latest
-    container_name: llm-streaming-api
+    container_name: llm-streaming-nginx
     restart: unless-stopped
-    environment:
-      - PORT=8080
-      - STATIC_DIR=./llm-streaming-tester
     ports:
       - "80:8080"
     healthcheck:
