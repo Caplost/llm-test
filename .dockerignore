@@ -3,6 +3,5 @@
 .dockerignore
 README.md
 docker-compose.yml
-nginx.conf
 .idea
 .vscode 

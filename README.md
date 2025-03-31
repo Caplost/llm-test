@@ -1,14 +1,13 @@
 # LLM Streaming Tester - Dockerized
 
-This project provides a Dockerized version of the LLM Streaming Tester, with a Go API server and Nginx for serving the application.
+This project provides a Dockerized version of the LLM Streaming Tester with a modern Go API server.
 
 ## Features
 
 - Modern Go API server using Go 1.22's new ServeMux
-- Nginx reverse proxy with optimal configuration
 - Docker Compose setup for easy deployment
 - Multi-stage Docker build for optimized image size
-- Health checks for both services
+- Built-in health checks for reliability
 
 ## Requirements
 
@@ -18,7 +17,7 @@ This project provides a Dockerized version of the LLM Streaming Tester, with a G
 ## Quick Start
 
 1. Clone this repository
-2. Run the following command to start the services:
+2. Run the following command to start the service:
 
 ```sh
 docker-compose up -d
@@ -29,7 +28,9 @@ docker-compose up -d
 ## Architecture
 
 - **Go API Server**: Serves the static files and provides API endpoints
-- **Nginx**: Acts as a reverse proxy, handling HTTP requests and forwarding them to the Go API
+  - Built using Go 1.22's new ServeMux for modern routing
+  - Handles HTTP requests directly
+  - Includes middleware for CORS and logging
 
 ## Configuration
 
@@ -67,7 +68,7 @@ If you encounter issues:
 docker-compose logs
 ```
 
-2. Ensure ports 80 is not already in use on your system
+2. Ensure port 80 is not already in use on your system
 3. Verify that the LLM Streaming Tester directory is properly mounted
 
 ## License
