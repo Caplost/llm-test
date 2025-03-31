@@ -8,28 +8,34 @@ ENV VERSION=${VERSION}
 RUN mkdir -p /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
-# 复制静态文件到nginx目录（包括子目录）
+# 添加一个最基本的测试文件
+RUN echo "This is a basic test file" > /usr/share/nginx/html/test.txt
+
+# 复制我们的备份index.html（确保至少有一个可用的index.html）
+COPY index.html /usr/share/nginx/html/index.html
+
+# 复制静态文件（包括子目录）
 COPY llm-streaming-tester/ /usr/share/nginx/html/
 
-# 如果llm-streaming-tester目录中没有index.html，使用我们的备份文件
-COPY index.html /usr/share/nginx/html/index.html.backup
-RUN if [ ! -f /usr/share/nginx/html/index.html ]; then \
-        cp /usr/share/nginx/html/index.html.backup /usr/share/nginx/html/index.html; \
-    fi
+# 确保index.html文件存在且有正确权限
+RUN chmod 644 /usr/share/nginx/html/index.html && \
+    chown nginx:nginx /usr/share/nginx/html/index.html
 
 # 复制Nginx配置
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 显示复制的文件列表，用于调试
-RUN echo "Files in /usr/share/nginx/html:" && \
+# 详细的调试输出
+RUN echo "=== Files in HTML root directory ===" && \
     ls -la /usr/share/nginx/html/ && \
-    echo "Subdirectories:" && \
+    echo "=== Subdirectories (if any) ===" && \
     find /usr/share/nginx/html -type d | sort && \
-    echo "index.html content:" && \
-    cat /usr/share/nginx/html/index.html | head -10
+    echo "=== First 10 lines of index.html ===" && \
+    cat /usr/share/nginx/html/index.html | head -10 && \
+    echo "=== nginx configuration ===" && \
+    cat /etc/nginx/conf.d/default.conf | grep -v "^[[:space:]]*#" | grep -v "^$"
 
 # Expose the port
 EXPOSE 8080
 
-# Start Nginx with debug mode
+# Start Nginx with verbose logging
 CMD ["nginx", "-g", "daemon off;"] 
