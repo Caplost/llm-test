@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+// Version will be set during build
+var Version = "development"
+
 // Response represents a standard API response
 type Response struct {
 	Status  string      `json:"status"`
@@ -28,7 +31,7 @@ func getEnv(key, fallback string) string {
 // setupLogging configures the logger
 func setupLogging() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	log.Println("Server starting...")
+	log.Println("Server starting... Version:", Version)
 }
 
 // corsMiddleware adds CORS headers to all responses
@@ -62,7 +65,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 		Status:  "success",
 		Message: "Service is healthy",
 		Data: map[string]string{
-			"version": "1.0.0",
+			"version": Version,
 			"time":    time.Now().Format(time.RFC3339),
 		},
 	}
@@ -102,6 +105,13 @@ func main() {
 	// Get configuration from environment variables
 	port := getEnv("PORT", "8080")
 	staticDir := getEnv("STATIC_DIR", "./llm-streaming-tester")
+	version := getEnv("VERSION", Version)
+
+	// Update Version if set via environment
+	if version != Version {
+		Version = version
+		log.Println("Version updated from environment:", Version)
+	}
 
 	// Create a new servemux with the new Go 1.22 features
 	mux := http.NewServeMux()
