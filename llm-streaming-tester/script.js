@@ -257,12 +257,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper function to get a random question
     function getRandomQuestion() {
-        const questions = getAllQuestions();
-        if (questions.length === 0) {
-            return "用简单的语言解释量子计算"; // Fallback if no questions are found
+        // 从prompt-template文本区域中提取问题
+        const promptTemplate = document.getElementById('prompt-template');
+        let extractedQuestions = [];
+        
+        if (promptTemplate && promptTemplate.value) {
+            // 解析文本区域内容，提取编号问题
+            const lines = promptTemplate.value.split('\n');
+            for (const line of lines) {
+                // 匹配形如 "数字. 问题内容" 的格式
+                const match = line.match(/^\d+\.\s+(.+)$/);
+                if (match && match[1]) {
+                    extractedQuestions.push(match[1]);
+                }
+            }
         }
-        const randomIndex = Math.floor(Math.random() * questions.length);
-        return questions[randomIndex];
+        
+        // 如果没有找到问题，使用默认问题
+        if (extractedQuestions.length === 0) {
+            console.warn("未能从模板中提取问题，使用默认问题");
+            return "用极其详尽的方式解释量子计算的原理、应用和未来发展趋势";
+        }
+        
+        // 偏好选择更长/更复杂的问题（这些问题通常会产生更长的回答）
+        extractedQuestions.sort((a, b) => b.length - a.length);
+        
+        // 从最复杂的一半问题中随机选择
+        const topHalf = extractedQuestions.slice(0, Math.ceil(extractedQuestions.length / 2));
+        const randomIndex = Math.floor(Math.random() * topHalf.length);
+        
+        console.log(`已选择较复杂问题: "${topHalf[randomIndex]}" (长度: ${topHalf[randomIndex].length}字符)`);
+        return topHalf[randomIndex];
     }
 
     function createNewRequest(prompt) {
@@ -562,6 +587,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 stream: true // Enable streaming
             };
             
+            // 检查是否存在自定义长度控制提示词，如果有则添加到请求中
+            const customPrompt = document.getElementById('custom-prompt');
+            if (customPrompt && customPrompt.value.trim()) {
+                // 将原始问题与自定义提示词结合
+                payload.prompt = `${prompt}\n\n${customPrompt.value.trim()}`;
+                console.log(`已添加自定义长度控制提示词，总长度: ${payload.prompt.length} 字符`);
+            }
+            
             console.log(`发起请求: ${responseId}`);
             
             // 简化请求过程，避免超时和多余检查
@@ -835,6 +868,26 @@ document.addEventListener('DOMContentLoaded', () => {
             tokensInfoElement.classList.remove('hidden');
         }
         
+        // 在函数的末尾添加token显示更新
+        if (totalTokensElement) {
+            const currentTokens = parseInt(totalTokensElement.textContent || '0');
+            updateTokensDisplay(totalTokensElement, currentTokens);
+            
+            // 当token数达到一定阈值时添加视觉提示
+            const parentElement = responseContent.closest('.response-window');
+            if (parentElement) {
+                if (currentTokens > 7000) {
+                    parentElement.style.border = '2px solid #EF4444'; // 红色边框
+                } else if (currentTokens > 5000) {
+                    parentElement.style.border = '2px solid #8B5CF6'; // 紫色边框
+                } else if (currentTokens > 3000) {
+                    parentElement.style.border = '2px solid #3B82F6'; // 蓝色边框
+                } else if (currentTokens > 1000) {
+                    parentElement.style.border = '2px solid #10B981'; // 绿色边框
+                }
+            }
+        }
+        
         return processedText;
     }
 
@@ -873,18 +926,54 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper function to estimate tokens from text
     // This is a rough approximation - actual token count depends on the tokenizer
     function estimateTokens(text) {
-        if (!text) return 0;
+        // 一个简单的token估计方法：中文每字约0.75 token，英文每4个字符约1 token
+        // 这只是一个粗略估计，实际token数取决于具体的模型分词器
+        const chineseChars = text.match(/[\u4e00-\u9fa5]/g)?.length || 0;
+        const otherChars = text.length - chineseChars;
+        return Math.ceil(chineseChars * 0.75 + otherChars * 0.25);
+    }
+
+    // 增加token显示风格
+    function updateTokensDisplay(tokensElement, tokensCount) {
+        if (!tokensElement) return;
         
-        // Count Chinese characters (each roughly counts as one token)
-        const chineseCharCount = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
+        // 根据token数量添加不同的颜色类
+        tokensElement.classList.remove('text-green-600', 'text-blue-600', 'text-purple-600', 'text-red-600', 'very-high');
         
-        // Count non-Chinese words (each roughly counts as one token)
-        const nonChineseText = text.replace(/[\u4e00-\u9fa5]/g, '');
-        const nonChineseWords = nonChineseText.trim().split(/[\s,.!?;:"'-]+/).filter(word => word.length > 0);
-        const nonChineseWordCount = nonChineseWords.length;
+        if (tokensCount < 1000) {
+            tokensElement.classList.add('text-green-600');
+        } else if (tokensCount < 3000) {
+            tokensElement.classList.add('text-blue-600');
+        } else if (tokensCount < 6000) {
+            tokensElement.classList.add('text-purple-600');
+        } else {
+            tokensElement.classList.add('text-red-600');
+            // 当令牌数非常高时添加额外效果
+            if (tokensCount > 7000) {
+                tokensElement.classList.add('very-high');
+            }
+        }
         
-        // Sum of Chinese characters and non-Chinese words as token estimate
-        return chineseCharCount + nonChineseWordCount || 1; // Return at least 1 if there's any text
+        // 使token计数更醒目
+        tokensElement.style.fontWeight = 'bold';
+        
+        // 更新响应窗口的样式
+        const responseWindow = tokensElement.closest('.response-window');
+        if (responseWindow) {
+            // 移除现有的token类
+            responseWindow.classList.remove('tokens-low', 'tokens-medium', 'tokens-high', 'tokens-very-high');
+            
+            // 根据token数量添加相应的类
+            if (tokensCount < 1000) {
+                responseWindow.classList.add('tokens-low');
+            } else if (tokensCount < 3000) {
+                responseWindow.classList.add('tokens-medium');
+            } else if (tokensCount < 6000) {
+                responseWindow.classList.add('tokens-high');
+            } else {
+                responseWindow.classList.add('tokens-very-high');
+            }
+        }
     }
 
     function updateStatus(statusElement, status) {
