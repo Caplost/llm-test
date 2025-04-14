@@ -1,0 +1,20 @@
+{
+    "deepseek": {
+        "name": "DeepSeek",
+        "endpoint": "http://153.37.96.42:21006/v1/completions",
+        "modelPath": "/home/models/DeepSeek-R1-Block-INT8",
+        "apiKey": ""
+    },
+    "volcano": {
+        "name": "火山引擎",
+        "endpoint": "https://volcano-api.example.com/v1/completions",
+        "modelPath": "volcano-model",
+        "apiKey": ""
+    },
+    "silicon": {
+        "name": "硅基流动",
+        "endpoint": "https://silicon-api.example.com/v1/completions",
+        "modelPath": "silicon-model",
+        "apiKey": ""
+    }
+} 

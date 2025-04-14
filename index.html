@@ -5,21 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LLM Streaming Tester</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>LLM Streaming Tester</h1>
-    <p>This is a simple test page to verify that Nginx is serving static files correctly.</p>
-    <p>If you can see this page, it means the basic Nginx configuration is working!</p>
+    <div class="container">
+        <h1>LLM Streaming Tester</h1>
+        
+        <div class="model-selection">
+            <h2>选择模型</h2>
+            <div id="model-checkboxes" class="model-checkboxes">
+                <!-- 模型选择框将通过JavaScript动态生成 -->
+            </div>
+        </div>
+
+        <div class="question-input">
+            <h2>输入问题</h2>
+            <textarea id="question" placeholder="请输入您的问题..."></textarea>
+            <button id="submit" onclick="submitQuestion()">发送</button>
+        </div>
+
+        <div class="results">
+            <h2>结果</h2>
+            <div id="results-container">
+                <!-- 结果将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
 </body>
 </html> 

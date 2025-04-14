@@ -1,0 +1,25 @@
+{
+  "models": [
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "api_url": "https://api.deepseek.com/v1/chat/completions",
+      "api_key": "YOUR_API_KEY",
+      "enabled": true
+    },
+    {
+      "id": "volcano",
+      "name": "火山引擎",
+      "api_url": "https://open.volcengineapi.com/v1/chat/completions",
+      "api_key": "YOUR_API_KEY",
+      "enabled": true
+    },
+    {
+      "id": "siliconflow",
+      "name": "硅基流动",
+      "api_url": "https://api.siliconflow.com/v1/chat/completions",
+      "api_key": "YOUR_API_KEY",
+      "enabled": true
+    }
+  ]
+} 
